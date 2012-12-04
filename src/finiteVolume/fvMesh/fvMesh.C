@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -272,6 +272,102 @@ Foam::fvMesh::fvMesh
 (
     const IOobject& io,
     const Xfer<pointField>& points,
+    const cellShapeList& shapes,
+    const faceListList& boundaryFaces,
+    const wordList& boundaryPatchNames,
+    const PtrList<dictionary>& boundaryDicts,
+    const word& defaultBoundaryPatchName,
+    const word& defaultBoundaryPatchType,
+    const bool syncPar
+)
+:
+    polyMesh
+    (
+        io,
+        points,
+        shapes,
+        boundaryFaces,
+        boundaryPatchNames,
+        boundaryDicts,
+        defaultBoundaryPatchName,
+        defaultBoundaryPatchType,
+        syncPar
+    ),
+    surfaceInterpolation(*this),
+    fvSchemes(static_cast<const objectRegistry&>(*this)),
+    fvSolution(static_cast<const objectRegistry&>(*this)),
+    data(static_cast<const objectRegistry&>(*this)),
+    boundary_(*this, boundaryMesh()),
+    lduPtr_(NULL),
+    curTimeIndex_(time().timeIndex()),
+    VPtr_(NULL),
+    V0Ptr_(NULL),
+    V00Ptr_(NULL),
+    SfPtr_(NULL),
+    magSfPtr_(NULL),
+    CPtr_(NULL),
+    CfPtr_(NULL),
+    phiPtr_(NULL)
+{
+    if (debug)
+    {
+        Info<< "Constructing fvMesh from cellShapes" << endl;
+    }
+}
+
+
+Foam::fvMesh::fvMesh
+(
+    const IOobject& io,
+    const Xfer<pointField>& points,
+    const cellShapeList& shapes,
+    const faceListList& boundaryFaces,
+    const wordList& boundaryPatchNames,
+    const PtrList<dictionary>& boundaryDicts,
+    const word& defaultBoundaryPatchName,
+    const word& defaultBoundaryPatchType,
+    const bool syncPar
+)
+:
+    polyMesh
+    (
+        io,
+        points,
+        shapes,
+        boundaryFaces,
+        boundaryPatchNames,
+        boundaryDicts,
+        defaultBoundaryPatchName,
+        defaultBoundaryPatchType,
+        syncPar
+    ),
+    surfaceInterpolation(*this),
+    fvSchemes(static_cast<const objectRegistry&>(*this)),
+    fvSolution(static_cast<const objectRegistry&>(*this)),
+    data(static_cast<const objectRegistry&>(*this)),
+    boundary_(*this, boundaryMesh()),
+    lduPtr_(NULL),
+    curTimeIndex_(time().timeIndex()),
+    VPtr_(NULL),
+    V0Ptr_(NULL),
+    V00Ptr_(NULL),
+    SfPtr_(NULL),
+    magSfPtr_(NULL),
+    CPtr_(NULL),
+    CfPtr_(NULL),
+    phiPtr_(NULL)
+{
+    if (debug)
+    {
+        Info<< "Constructing fvMesh from cellShapes" << endl;
+    }
+}
+
+
+Foam::fvMesh::fvMesh
+(
+    const IOobject& io,
+    const Xfer<pointField>& points,
     const Xfer<faceList>& faces,
     const Xfer<labelList>& allOwner,
     const Xfer<labelList>& allNeighbour,
@@ -481,6 +577,13 @@ void Foam::fvMesh::mapFields(const mapPolyMesh& meshMap)
     (mapper);
     MapGeometricFields<tensor, fvsPatchField, fvMeshMapper, surfaceMesh>
     (mapper);
+
+    // Map all the dimensionedFields in the objectRegistry
+    MapDimensionedFields<scalar, fvMeshMapper, volMesh>(mapper);
+    MapDimensionedFields<vector, fvMeshMapper, volMesh>(mapper);
+    MapDimensionedFields<sphericalTensor, fvMeshMapper, volMesh>(mapper);
+    MapDimensionedFields<symmTensor, fvMeshMapper, volMesh>(mapper);
+    MapDimensionedFields<tensor, fvMeshMapper, volMesh>(mapper);
 
     // Map all the clouds in the objectRegistry
     mapClouds(*this, meshMap);

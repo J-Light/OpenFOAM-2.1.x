@@ -74,8 +74,8 @@ Foam::temperatureCoupledBase::temperatureCoupledBase
 )
 :
     patch_(patch),
-    method_(KMethodTypeNames_.read(dict.lookup("K"))),
-    KName_(dict.lookup("KName"))
+    method_(KMethodType(KMethodTypeNames_.find(dict.lookupOrDefault<word>("K", "basicThermo"))())),
+    KName_(dict.lookupOrDefault<word>("KName", "notset"))
 {}
 
 

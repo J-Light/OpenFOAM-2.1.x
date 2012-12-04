@@ -20,6 +20,7 @@ FoamFile
 // - always: order faces on coupled patches such that they are opposite. This
 //   is done for all coupled faces, not just for any patches created.
 // - optional: synchronise points on coupled patches.
+// - always: remove zero-sized (non-coupled) patches (that were not added)
 
 // 1. Create cyclic:
 // - specify where the faces should come from
@@ -91,8 +92,10 @@ patches
             // Optional: explicitly set transformation tensor.
             // Used when matching and synchronising points.
             transform rotational;
-            rotationAxis    ( 0 0 1 );
-            rotationCentre  ( 0.3 0 0 );
+            rotationAxis (1 0 0);
+            rotationCentre (0 0 0);
+            // transform translational;
+            // separationVector (1 0 0);
         }
 
         // How to construct: either from 'patches' or 'set'

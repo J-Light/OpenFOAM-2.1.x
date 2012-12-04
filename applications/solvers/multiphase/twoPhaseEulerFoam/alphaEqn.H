@@ -1,56 +1,85 @@
 {
-    word scheme("div(phi,alpha)");
-    word schemer("div(phir,alpha)");
+    word alphaScheme("div(phi,alpha1)");
+    word alpharScheme("div(phir,alpha1)");
 
     surfaceScalarField phic("phic", phi);
-    surfaceScalarField phir("phir", phia - phib);
+    surfaceScalarField phir("phir", phi1 - phi2);
 
     if (g0.value() > 0.0)
     {
-        surfaceScalarField alphaf(fvc::interpolate(alpha));
-        surfaceScalarField phipp(ppMagf*fvc::snGrad(alpha)*mesh.magSf());
+        surfaceScalarField alpha1f(fvc::interpolate(alpha1));
+        surfaceScalarField phipp(ppMagf*fvc::snGrad(alpha1)*mesh.magSf());
         phir += phipp;
-        phic += fvc::interpolate(alpha)*phipp;
+        phic += alpha1f*phipp;
     }
 
     for (int acorr=0; acorr<nAlphaCorr; acorr++)
     {
-        fvScalarMatrix alphaEqn
+        for
         (
-             fvm::ddt(alpha)
-           + fvm::div(phic, alpha, scheme)
-           + fvm::div(-fvc::flux(-phir, beta, schemer), alpha, schemer)
-        );
-
-        if (g0.value() > 0.0)
+            subCycle<volScalarField> alphaSubCycle(alpha1, nAlphaSubCycles);
+            !(++alphaSubCycle).end();
+        )
         {
-            ppMagf = rUaAf*fvc::interpolate
+            surfaceScalarField alphaPhic1
             (
-                (1.0/(rhoa*(alpha + scalar(0.0001))))
-               *g0*min(exp(preAlphaExp*(alpha - alphaMax)), expMax)
+                fvc::flux
+                (
+                    phic,
+                    alpha1,
+                    alphaScheme
+                )
+              + fvc::flux
+                (
+                    -fvc::flux(-phir, alpha2, alpharScheme),
+                    alpha1,
+                    alpharScheme
+                )
             );
 
-            alphaEqn -= fvm::laplacian
+            MULES::explicitSolve
             (
-                (fvc::interpolate(alpha) + scalar(0.0001))*ppMagf,
-                alpha,
-                "laplacian(alphaPpMag,alpha)"
+                alpha1,
+                phi,
+                alphaPhic1,
+                (g0.value() > 0 ? alphaMax : 1),
+                0
             );
         }
 
-        alphaEqn.relax();
-        alphaEqn.solve();
+        if (g0.value() > 0)
+        {
+            surfaceScalarField alpha1f(fvc::interpolate(alpha1));
 
-        #include "packingLimiter.H"
+            ppMagf =
+                rAU1f/(alpha1f + scalar(0.0001))
+               *(g0/rho1)*min(exp(preAlphaExp*(alpha1f - alphaMax)), expMax);
 
-        beta = scalar(1) - alpha;
+            fvScalarMatrix alpha1Eqn
+            (
+                fvm::ddt(alpha1) - fvc::ddt(alpha1)
+              - fvm::laplacian
+                (
+                    alpha1f*ppMagf,
+                    alpha1,
+                    "laplacian(alpha1PpMag,alpha1)"
+                )
+            );
+
+            alpha1Eqn.relax();
+            alpha1Eqn.solve();
+
+            #include "packingLimiter.H"
+        }
+
+        alpha2 = scalar(1) - alpha1;
 
         Info<< "Dispersed phase volume fraction = "
-            << alpha.weightedAverage(mesh.V()).value()
-            << "  Min(alpha) = " << min(alpha).value()
-            << "  Max(alpha) = " << max(alpha).value()
+            << alpha1.weightedAverage(mesh.V()).value()
+            << "  Min(alpha1) = " << min(alpha1).value()
+            << "  Max(alpha1) = " << max(alpha1).value()
             << endl;
     }
 }
 
-rho = alpha*rhoa + beta*rhob;
+rho = alpha1*rho1 + alpha2*rho2;

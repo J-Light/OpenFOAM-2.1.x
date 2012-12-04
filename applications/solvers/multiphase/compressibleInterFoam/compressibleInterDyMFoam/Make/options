@@ -3,6 +3,7 @@ EXE_INC = \
     -I$(LIB_SRC)/transportModels \
     -I$(LIB_SRC)/transportModels/incompressible/lnInclude \
     -I$(LIB_SRC)/transportModels/interfaceProperties/lnInclude \
+    -I../phaseEquationsOfState/lnInclude \
     -I$(LIB_SRC)/turbulenceModels/incompressible/turbulenceModel \
     -I$(LIB_SRC)/finiteVolume/lnInclude \
     -I$(LIB_SRC)/dynamicMesh/lnInclude \
@@ -10,11 +11,13 @@ EXE_INC = \
     -I$(LIB_SRC)/dynamicFvMesh/lnInclude
 
 EXE_LIBS = \
-    -ltwoPhaseInterfaceProperties \
+    -ltwoPhaseInterfaceProperties -u twoPhaseInterfacePropertiesLoad \
+    -linterfaceProperties -u interfacePropertiesLoad \
     -lincompressibleTransportModels \
+    -lphaseEquationsOfState \
     -lincompressibleTurbulenceModel \
-    -lincompressibleRASModels \
-    -lincompressibleLESModels \
+    -lincompressibleRASModels -u incompressibleRASModelsLoad \
+    -lincompressibleLESModels -u incompressibleLESModelsLoad \
     -lfiniteVolume \
     -ldynamicMesh \
     -lmeshTools \

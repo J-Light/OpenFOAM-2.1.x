@@ -7,5 +7,6 @@ wclean interDyMFoam
 wclean MRFInterFoam
 wclean porousInterFoam
 wclean LTSInterFoam
+wclean porousMRFInterFoam
 
 # ----------------------------------------------------------------- end-of-file

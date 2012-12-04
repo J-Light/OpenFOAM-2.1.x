@@ -1,0 +1,3 @@
+porousMRFInterFoam.C
+
+EXE = $(FOAM_APPBIN)/porousMRFInterFoam

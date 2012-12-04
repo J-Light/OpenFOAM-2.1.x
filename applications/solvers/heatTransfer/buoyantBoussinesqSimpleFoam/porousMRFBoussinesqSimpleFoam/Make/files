@@ -1,0 +1,3 @@
+porousMRFBoussinesqSimpleFoam.C
+
+EXE = $(FOAM_APPBIN)/porousMRFBoussinesqSimpleFoam

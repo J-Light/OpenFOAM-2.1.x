@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -82,6 +82,18 @@ tmp<volScalarField> kOmegaSST::F2() const
     );
 
     return tanh(sqr(arg2));
+}
+
+
+tmp<volScalarField> kOmegaSST::F3() const
+{
+    tmp<volScalarField> arg3 = min
+    (
+        150*nu()/(omega_*sqr(y_)),
+        scalar(10)
+    );
+
+    return 1 - tanh(pow4(arg3));
 }
 
 
@@ -188,6 +200,15 @@ kOmegaSST::kOmegaSST
             0.31
         )
     ),
+    b1_
+    (
+        dimensioned<scalar>::lookupOrAddToDict
+        (
+            "b1",
+            coeffDict_,
+            1.0
+        )
+    ),
     c1_
     (
         dimensioned<scalar>::lookupOrAddToDict
@@ -246,7 +267,7 @@ kOmegaSST::kOmegaSST
       / max
         (
             a1_*omega_,
-            F2()*sqrt(2.0)*mag(symm(fvc::grad(U_)))
+            b1_*F2()*F3()*sqrt(2.0)*mag(symm(fvc::grad(U_)))
         )
     );
     nut_.correctBoundaryConditions();
@@ -308,6 +329,22 @@ tmp<fvVectorMatrix> kOmegaSST::divDevReff(volVectorField& U) const
 }
 
 
+tmp<fvVectorMatrix> kOmegaSST::divDevRhoReff
+(
+    const volScalarField& rho,
+    volVectorField& U
+) const
+{
+    volScalarField muEff("muEff", rho*nuEff());
+
+    return
+    (
+      - fvm::laplacian(muEff, U)
+      - fvc::div(muEff*dev(T(fvc::grad(U))))
+    );
+}
+
+
 bool kOmegaSST::read()
 {
     if (RASModel::read())
@@ -322,6 +359,7 @@ bool kOmegaSST::read()
         beta2_.readIfPresent(coeffDict());
         betaStar_.readIfPresent(coeffDict());
         a1_.readIfPresent(coeffDict());
+        b1_.readIfPresent(coeffDict());
         c1_.readIfPresent(coeffDict());
 
         return true;
@@ -402,7 +440,7 @@ void kOmegaSST::correct()
 
 
     // Re-calculate viscosity
-    nut_ = a1_*k_/max(a1_*omega_, F2()*sqrt(S2));
+    nut_ = a1_*k_/max(a1_*omega_, b1_*F2()*F3()*sqrt(S2));
     nut_.correctBoundaryConditions();
 }
 

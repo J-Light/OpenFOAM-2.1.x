@@ -36,6 +36,7 @@ SourceFiles
 #define fanFvPatchField_H
 
 #include "fixedJumpFvPatchField.H"
+#include "Switch.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -56,6 +57,8 @@ class fanFvPatchField
         //- Fan pressure rise polynomial coefficients
         List<scalar> f_;
 
+        //- Reverse direction relative to patch normal
+        Switch reversed_;
 
 public:
 

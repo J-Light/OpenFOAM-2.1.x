@@ -55,6 +55,8 @@ void Foam::fanFvPatchField<Foam::scalar>::updateCoeffs()
     // Note that the neighbour side jump_ data is never actually used; the
     // jump() function just calls the owner side jump().
 
+    const scalar dir = reversed_ ? -1 : 1; 
+
     // Constant
     jump_ = f_[0];
 
@@ -66,7 +68,7 @@ void Foam::fanFvPatchField<Foam::scalar>::updateCoeffs()
         const fvsPatchField<scalar>& phip =
             patch().patchField<surfaceScalarField, scalar>(phi);
 
-        scalarField Un(max(phip/patch().magSf(), scalar(0)));
+        scalarField Un(max(dir*phip/patch().magSf(), scalar(0)));
 
         if (phi.dimensions() == dimDensity*dimVelocity*dimArea)
         {
@@ -80,6 +82,8 @@ void Foam::fanFvPatchField<Foam::scalar>::updateCoeffs()
 
         jump_ = max(jump_, scalar(0));
     }
+
+    jump_ *= dir;
 
     fixedJumpFvPatchField<scalar>::updateCoeffs();
 }

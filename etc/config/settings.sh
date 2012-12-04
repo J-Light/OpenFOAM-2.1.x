@@ -141,6 +141,10 @@ SunOS)
     export WM_LDFLAGS='-mabi=64 -G0'
     ;;
 
+Darwin)
+    WM_ARCH=darwin
+    ;;
+
 *)    # an unsupported operating system
     cat <<USAGE
 
@@ -389,29 +393,18 @@ unset boost_version cgal_version
 # Communications library
 # ~~~~~~~~~~~~~~~~~~~~~~
 
-unset MPI_ARCH_PATH MPI_HOME FOAM_MPI_LIBBIN
+unset MPI_HOME FOAM_MPI_LIBBIN
 
 case "$WM_MPLIB" in
 SYSTEMOPENMPI)
     # Use the system installed openmpi, get library directory via mpicc
     export FOAM_MPI=openmpi-system
 
-    # Set compilation flags here instead of in wmake/rules/../mplibSYSTEMOPENMPI
-    export PINC="`mpicc --showme:compile`"
-    export PLIBS="`mpicc --showme:link`"
-    libDir=`echo "$PLIBS" | sed -e 's/.*-L\([^ ]*\).*/\1/'`
+    libDir=`mpicc --showme:link | sed -e 's/.*-L\([^ ]*\).*/\1/'`
 
     # Bit of a hack: strip off 'lib' and hope this is the path to openmpi
     # include files and libraries.
     export MPI_ARCH_PATH="${libDir%/*}"
-
-    if [ "$FOAM_VERBOSE" -a "$PS1" ]
-    then
-        echo "Using system installed MPI:"
-        echo "    compile flags : $PINC"
-        echo "    link flags    : $PLIBS"
-        echo "    libmpi dir    : $libDir"
-    fi
 
     _foamAddLib     $libDir
     unset libDir
@@ -422,7 +415,7 @@ OPENMPI)
     # optional configuration tweaks:
     _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/openmpi.sh`
 
-    export MPI_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$FOAM_MPI
+    : ${MPI_ARCH_PATH:=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$FOAM_MPI}; export MPI_ARCH_PATH
 
     # Tell OpenMPI where to find its install directory
     export OPAL_PREFIX=$MPI_ARCH_PATH
@@ -574,6 +567,12 @@ INTELMPI)
     _foamAddPath    $MPI_ARCH_PATH/bin64
     _foamAddLib     $MPI_ARCH_PATH/lib64
     ;;
+
+MSMPI)
+    export FOAM_MPI=msmpi
+    : ${MPI_ARCH_PATH:=$HOME/projects/msmpi/install}; export MPI_ARCH_PATH
+    ;;
+
 *)
     export FOAM_MPI=dummy
     ;;
@@ -597,6 +596,26 @@ then
     MPI_BUFFER_SIZE=$minBufferSize
 fi
 export MPI_BUFFER_SIZE
+
+
+
+# GPU library
+# ~~~~~~~~~~~~~~~~~~~~~~
+
+
+case "$WM_GPU" in
+CUDA)
+    : ${CUDA_ARCH_PATH:=$HOME/projects/ofgpu}; export CUDA_ARCH_PATH
+    export FOAM_GPU_LIBBIN=$FOAM_LIBBIN/cuda
+    _foamAddLib     /usr/local/cuda/lib64
+    _foamAddLib     ${CUDA_ARCH_PATH}/install/lib
+    ;;
+*)
+    export FOAM_GPU_LIBBIN=$FOAM_LIBBIN/gpuless
+    ;;
+esac
+
+_foamAddLib $FOAM_GPU_LIBBIN
 
 
 # cleanup environment:

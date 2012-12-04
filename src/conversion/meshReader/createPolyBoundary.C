@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -303,14 +303,12 @@ void Foam::meshReader::createPolyBoundary()
 
     Info<< "Added " << nMissingFaces << " unmatched faces" << endl;
 
+    // Add missing faces to last patch ('Default_Empty' etc.)
     if (nMissingFaces > 0)
     {
         patchSizes_.last() = nMissingFaces;
     }
-    else
-    {
-        patchStarts_.setSize(patchStarts_.size() - 1);
-    }
+
 
     // reset the size of the face list
     meshFaces_.setSize(nCreatedFaces);
@@ -378,8 +376,9 @@ Foam::meshReader::polyBoundaryPatches(const polyMesh& mesh)
     label nPatches = patchStarts_.size();
 
     // avoid empty patches - move to the end of the lists and truncate
+    // Size loop according to patchStarts_ can be smaller than patchSizes_
     labelList oldToNew = identity(nPatches);
-    forAll(patchSizes_, patchI)
+    forAll(patchStarts_, patchI)
     {
         if (patchSizes_[patchI] > 0)
         {

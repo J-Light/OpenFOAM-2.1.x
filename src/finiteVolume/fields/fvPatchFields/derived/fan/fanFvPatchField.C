@@ -36,7 +36,8 @@ Foam::fanFvPatchField<Type>::fanFvPatchField
 )
 :
     fixedJumpFvPatchField<Type>(p, iF),
-    f_(0)
+    f_(0),
+    reversed_(false)
 {}
 
 
@@ -50,7 +51,8 @@ Foam::fanFvPatchField<Type>::fanFvPatchField
 )
 :
     fixedJumpFvPatchField<Type>(ptf, p, iF, mapper),
-    f_(ptf.f_)
+    f_(ptf.f_),
+    reversed_(ptf.reversed_)
 {}
 
 
@@ -63,8 +65,11 @@ Foam::fanFvPatchField<Type>::fanFvPatchField
 )
 :
     fixedJumpFvPatchField<Type>(p, iF),
-    f_()
+    f_(),
+    reversed_(false)
 {
+    reversed_.readIfPresent("reversed", dict);
+
     {
         Istream& is = dict.lookup("f");
         is.format(IOstream::ASCII);
@@ -95,7 +100,8 @@ Foam::fanFvPatchField<Type>::fanFvPatchField
 :
     cyclicLduInterfaceField(),
     fixedJumpFvPatchField<Type>(ptf),
-    f_(ptf.f_)
+    f_(ptf.f_),
+    reversed_(ptf.reversed_)
 {}
 
 
@@ -107,7 +113,8 @@ Foam::fanFvPatchField<Type>::fanFvPatchField
 )
 :
     fixedJumpFvPatchField<Type>(ptf, iF),
-    f_(ptf.f_)
+    f_(ptf.f_),
+    reversed_(ptf.reversed_)
 {}
 
 
@@ -122,6 +129,7 @@ void Foam::fanFvPatchField<Type>::write(Ostream& os) const
 
     IOstream::streamFormat fmt0 = os.format(IOstream::ASCII);
     os.writeKeyword("f") << f_ << token::END_STATEMENT << nl;
+    os.writeKeyword("reversed") << reversed_ << token::END_STATEMENT << nl;
     os.format(fmt0);
 
     this->writeEntry("value", os);
