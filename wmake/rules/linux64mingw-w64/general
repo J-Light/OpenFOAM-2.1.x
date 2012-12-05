@@ -1,4 +1,4 @@
-CPP        = /lib/cpp -traditional-cpp $(GFLAGS)
+CPP        = /usr/bin/cpp -traditional-cpp $(GFLAGS)
 LD         = x86_64-w64-mingw32-ld
 AR         = x86_64-w64-mingw32-ar
 RANLIB     = x86_64-w64-mingw32-ranlib
