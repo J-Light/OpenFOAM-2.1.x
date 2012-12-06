@@ -79,15 +79,12 @@ export WM_PRECISION_OPTION=DP
 export WM_COMPILE_OPTION=Opt
 
 #- MPI implementation:
-#    WM_MPLIB = NONE | SYSTEMOPENMPI | OPENMPI | MPICH | MPICH-GM | HPMPI
-#               | GAMMA | MPI | QSMPI | MSMPI
+#    WM_MPLIB = SYSTEMOPENMPI | OPENMPI | MPICH | MPICH-GM | HPMPI
+#               | GAMMA | MPI | QSMPI
 export WM_MPLIB=OPENMPI
 
-# WM_GPU = NONE | CUDA
-export WM_GPU=NONE
-
 #- Operating System:
-#    WM_OSTYPE = POSIX | MSwindows
+#    WM_OSTYPE = POSIX | ???
 export WM_OSTYPE=POSIX
 
 #- Floating-point signal handling:
