@@ -2,7 +2,7 @@
 
 cWARN        = -Wall
 
-cc          = x86_64-w64-mingw32-gcc -m64
+cc          = x86_64-w64-mingw32-gcc -m64 -static-libgcc
 
 include $(RULES)/c$(WM_COMPILE_OPTION)
 

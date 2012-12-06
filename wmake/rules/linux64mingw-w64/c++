@@ -2,7 +2,7 @@
 
 c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wnon-virtual-dtor
 
-CC          = x86_64-w64-mingw32-g++ -m64
+CC          = x86_64-w64-mingw32-g++ -m64 -static-libstdc++
 
 include $(RULES)/c++$(WM_COMPILE_OPTION)
 
