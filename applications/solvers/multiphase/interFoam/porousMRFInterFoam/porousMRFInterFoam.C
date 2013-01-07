@@ -47,6 +47,7 @@ Description
 #include "MRFZones.H"
 #include "porousZones.H"
 #include "pimpleControl.H"
+#include "IObasicSourceList.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
