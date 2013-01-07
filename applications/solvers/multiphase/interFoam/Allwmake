@@ -8,5 +8,6 @@ wmake MRFInterFoam
 wmake porousInterFoam
 wmake LTSInterFoam
 wmake porousMRFInterFoam
+wmake interMixingFoam
 
 # ----------------------------------------------------------------- end-of-file
